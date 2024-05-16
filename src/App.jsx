@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import "./App.css";
+import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Heder";
-import { saveContact, getContacts } from "./api/ContactService";
+import { updatePhoto, saveContact, getContacts } from "./api/ContactService";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ContactList from "./components/ContactList";
+import ContactDetail from "./components/ContactDetail";
+import { ToastContainer } from "react-toastify";
+import { toastError } from "./api/ToastService";
 
 function App() {
   const [data, setData] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const modalRef = useRef();
-  const [formData, setFormData] = useState({
+  const fileRef = useRef();
+  const [formData, setformData] = useState({
     name: "",
     email: "",
     title: "",
@@ -19,22 +23,31 @@ function App() {
     photo: null,
   });
   const [file, setFile] = useState(undefined);
-  // const [newFormData, setNewFormData] = useState([]);
-
-  // const handleSubmit = () => {};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    console.log(formData);
+    setformData({ ...formData, [name]: value });
   };
-
-  // const handleFileChange = () => {};
 
   const addContact = async (e) => {
     e.preventDefault();
     try {
-      await saveContact(formData);
+      const { data: newContact } = await saveContact(formData);
+      const formDataUpdate = new FormData();
+      formDataUpdate.append("file", file, file.name);
+      formDataUpdate.append("id", newContact.id);
+      const { data: photoUrl } = await updatePhoto(formDataUpdate);
+      setFile(undefined);
+      fileRef.current.value = null;
+      setformData({
+        name: "",
+        email: "",
+        title: "",
+        phone: "",
+        address: "",
+        status: "",
+        photo: null,
+      });
       toggleModal(false);
       await getAllContacts();
     } catch (error) {
@@ -50,6 +63,26 @@ function App() {
       console.log(data);
     } catch (error) {
       console.log(error);
+      toastError(error.message);
+    }
+  };
+
+  const updateContact = async (contact) => {
+    try {
+      const { data } = await saveContact(contact);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+      toastError(error.message);
+    }
+  };
+
+  const updateImage = async (formData) => {
+    try {
+      const { data: photoUrl } = await updatePhoto(formData);
+    } catch (error) {
+      console.log(error);
+      toastError(error.message);
     }
   };
 
@@ -74,6 +107,15 @@ function App() {
                   data={data}
                   currentPage={currentPage}
                   getAllContacts={getAllContacts}
+                />
+              }
+            />
+            <Route
+              path="/contacts/:id"
+              element={
+                <ContactDetail
+                  updateContact={updateContact}
+                  updateImage={updateImage}
                 />
               }
             />
@@ -153,12 +195,11 @@ function App() {
               <div className="file-input">
                 <span className="details">Profile Photo</span>
                 <input
-                  onChange={(e) => {
-                    setFile(e.target.files[0]);
-                    console.log(e.target.files[0]);
-                  }}
+                  onChange={(e) => setFile(e.target.files[0])}
+                  ref={fileRef}
                   type="file"
                   name="photo"
+                  required
                 />
               </div>
             </div>
@@ -177,6 +218,7 @@ function App() {
           </form>
         </div>
       </dialog>
+      <ToastContainer />
     </>
   );
 }
