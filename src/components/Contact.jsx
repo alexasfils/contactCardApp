@@ -1,6 +1,20 @@
 import { Link } from "react-router-dom";
 // import PropTypes from "prop-types";
-function Contact({ contact }) {
+function Contact({ contact, onCheked }) {
+  // const deleteContact = async (id) => {
+  //   try {
+  //     const { data } = await deleteContact(id);
+  //     setformData([
+  //       ...formData.filter((item, index) => {
+  //         return index !== id;
+  //       }),
+  //     ]);
+  //   } catch (error) {
+  //     console.log(error);
+  //     toastError(error.message);
+  //   }
+  // };
+
   return (
     <Link to={`/contacts/${contact.id}`} className="contact__item">
       <div className="contact__header">
@@ -35,6 +49,9 @@ function Contact({ contact }) {
           )}
           {contact.status}
         </p>
+        <button onClick={() => onCheked(contact.id)} className="btn btn-danger">
+          Delete
+        </button>
       </div>
     </Link>
   );

@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Heder";
-import { updatePhoto, saveContact, getContacts } from "./api/ContactService";
+import {
+  updatePhoto,
+  saveContact,
+  getContacts,
+  deleteContact,
+} from "./api/ContactService";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ContactList from "./components/ContactList";
 import ContactDetail from "./components/ContactDetail";
 import { ToastContainer } from "react-toastify";
 import { toastError } from "./api/ToastService";
+//--------------------------------------//
+//DA FARE ELIMINAZIONE DEL CONTATTO
+
+//--------------------------------------//
 
 function App() {
   const [data, setData] = useState({});
@@ -89,6 +98,16 @@ function App() {
   const toggleModal = (show) =>
     show ? modalRef.current.showModal() : modalRef.current.close();
 
+  const cancellaContact = async (id) => {
+    try {
+      await deleteContact(id);
+      getAllContacts();
+    } catch (error) {
+      console.log(error);
+      toastError(error.message);
+    }
+  };
+
   useEffect(() => {
     getAllContacts();
   }, []);
@@ -107,6 +126,7 @@ function App() {
                   data={data}
                   currentPage={currentPage}
                   getAllContacts={getAllContacts}
+                  onCheked={cancellaContact}
                 />
               }
             />
